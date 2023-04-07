@@ -1,25 +1,32 @@
 package ru.nelf.backend.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import ru.nelf.backend.entity.File;
 import ru.nelf.backend.entity.Request;
 import ru.nelf.backend.entity.Response;
 import ru.nelf.backend.service.StorageService;
+
+import java.util.List;
 
 @RestController
 public class Controller {
 
     @Autowired
-    StorageService storageService;
+    private StorageService storageService;
 
-    @GetMapping(value = "/{id}",produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/")
+    public List<File> getAllImages() {
+        return storageService.getAll();
+    }
+
+    @GetMapping(value = "/{id}")
     public Response getImage(@PathVariable String id) {
-        return new Response(storageService.getImage(id+".jpg"));
+        return storageService.getImage(id + ".jpg");
     }
 
     @PostMapping(value = "/")
-    public void putImage(@RequestBody Request request){
-        storageService.putImage(request.getUrl());
+    public Response putImage(@RequestBody Request request) {
+        return storageService.putImage(request);
     }
 }
