@@ -2,13 +2,10 @@ package ru.nelf.backend.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.nelf.backend.entity.File;
 import ru.nelf.backend.entity.Request;
 import ru.nelf.backend.entity.Response;
 import ru.nelf.backend.entity.ResponseCategoryFiles;
 import ru.nelf.backend.service.StorageService;
-
-import java.util.List;
 
 @RestController
 public class Controller {
@@ -17,7 +14,7 @@ public class Controller {
     private StorageService storageService;
 
     @GetMapping(value = "/all")
-    public List<File> getAllImages() {
+    public ResponseCategoryFiles getAllImages() {
         return storageService.getAll();
     }
 

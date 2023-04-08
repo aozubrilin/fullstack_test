@@ -34,8 +34,9 @@ public class StorageService {
         }
     }
 
-    public List<File> getAll() {
-        return mongoDBRepository.findAll();
+    public ResponseCategoryFiles getAll() {
+        List<File> fileList = mongoDBRepository.findAll();
+        return new ResponseCategoryFiles(200,fileList);
     }
 
     public Response getImage(String fileName) {
