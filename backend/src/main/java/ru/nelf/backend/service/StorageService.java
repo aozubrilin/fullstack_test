@@ -5,10 +5,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.nelf.backend.entity.File;
-import ru.nelf.backend.entity.Request;
-import ru.nelf.backend.entity.Response;
-import ru.nelf.backend.entity.StorageConfig;
+import ru.nelf.backend.entity.*;
 import ru.nelf.backend.repository.MongoDBRepository;
 
 import java.io.InputStream;
@@ -31,7 +28,7 @@ public class StorageService {
         for (S3ObjectSummary e : list) {
             mongoDBRepository.save(new File(
                     e.getKey(),
-                    "all",
+                    "животные",
                     storageConfig.getS3client().getUrl(storageConfig.getBUCKET_NAME(), e.getKey()).toString())
             );
         }
@@ -43,11 +40,8 @@ public class StorageService {
 
     public Response getImage(String fileName) {
         Optional<File> optionalFile = mongoDBRepository.findByFilename(fileName);
-        if (optionalFile.isPresent()) {
-            File file = optionalFile.get();
-            return new Response(200, file.getId(), file.getFilename(), file.getCategory(), file.getUrl());
-        } else
-            return new Response(409, fileName);
+        // если существует, то вернуть. Иначе ошибка 404
+        return optionalFile.map(file -> new Response(200, file)).orElseGet(() -> new Response(404, fileName));
     }
 
     public Response putImage(Request request) {
@@ -69,5 +63,22 @@ public class StorageService {
         } catch (Exception e) {
             return new Response(409, request.getFilename());
         }
+    }
+
+    public Response deleteImage(String filename) {
+        Optional<File> optionalFile = mongoDBRepository.findByFilename(filename);
+        if (optionalFile.isPresent()) {
+            mongoDBRepository.delete(optionalFile.get());
+            storageConfig.getS3client().deleteObject(storageConfig.getBUCKET_NAME(),filename);
+            optionalFile.get().setUrl(null);
+            return new Response(200, optionalFile.get());
+        } else
+            return new Response(404, filename);
+    }
+
+    public ResponseCategoryFiles findByCategory(String category) {
+        Optional<List<File>> optionalFileList = mongoDBRepository.findAllByCategory(category);
+        // если существует, то вернуть. Иначе ошибка 404
+        return optionalFileList.map(files -> new ResponseCategoryFiles(200, files)).orElseGet(() -> new ResponseCategoryFiles(404, null));
     }
 }

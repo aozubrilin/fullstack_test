@@ -20,6 +20,14 @@ public class Response {
         this.filename = filename;
     }
 
+    public Response (int status,File file){
+        this.status = status;
+        this.id = file.getId();
+        this.filename = file.getFilename();
+        this.category = file.getCategory();
+        this.url = file.getUrl();
+    }
+
     public Response(int status, String id, String filename, String category, String url) {
         this.status = status;
         this.id = id;

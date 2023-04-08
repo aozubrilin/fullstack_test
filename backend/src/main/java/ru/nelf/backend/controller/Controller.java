@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.nelf.backend.entity.File;
 import ru.nelf.backend.entity.Request;
 import ru.nelf.backend.entity.Response;
+import ru.nelf.backend.entity.ResponseCategoryFiles;
 import ru.nelf.backend.service.StorageService;
 
 import java.util.List;
@@ -15,18 +16,28 @@ public class Controller {
     @Autowired
     private StorageService storageService;
 
-    @GetMapping(value = "/")
+    @GetMapping(value = "/all")
     public List<File> getAllImages() {
         return storageService.getAll();
     }
 
-    @GetMapping(value = "/{id}")
-    public Response getImage(@PathVariable String id) {
-        return storageService.getImage(id + ".jpg");
+    @GetMapping(value = "/{filename}")
+    public Response getImage(@PathVariable String filename) {
+        return storageService.getImage(filename + ".jpg");
+    }
+
+    @GetMapping(value = "/")
+    public ResponseCategoryFiles getCategoryFiles(@RequestParam String category){
+        return storageService.findByCategory(category.toLowerCase());
     }
 
     @PostMapping(value = "/")
     public Response putImage(@RequestBody Request request) {
         return storageService.putImage(request);
+    }
+
+    @DeleteMapping(value = "/{filename}")
+    public Response deleteImage(@PathVariable String filename){
+        return storageService.deleteImage(filename + ".jpg");
     }
 }
