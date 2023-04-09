@@ -1,4 +1,4 @@
 export const AppRoute = {
-  MAIN: { url: '/', title: 'Главная' },
-  EXAMPLE: { url: '/example', title: 'Upload' },
+  MAIN: { url: '/', title: 'Main' },
+  EXAMPLE: { url: '/upload', title: 'Upload' },
 };
