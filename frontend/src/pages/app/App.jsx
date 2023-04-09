@@ -12,8 +12,7 @@ const App = () => {
   return (
     <React.Fragment>
       <GlobalStyle />
-
-      <Router basename="/">
+      <Router basename="fullstack_test">
         <HeaderComponent />
         <ContentPage>
           <Routes>
