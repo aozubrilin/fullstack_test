@@ -18,6 +18,11 @@ public class Controller {
         return storageService.getAll();
     }
 
+    @GetMapping(value = "/test")
+    public String test(){
+        return "test";
+    }
+
     @GetMapping(value = "/{filename}")
     public Response getImage(@PathVariable String filename) {
         return storageService.getImage(filename + ".jpg");
