@@ -32,12 +32,13 @@ public class Controller {
     public ResponseCategoryFiles getCategoryFiles(@RequestParam String category){
         return storageService.findByCategory(category.toLowerCase());
     }
-
+    @CrossOrigin
     @PostMapping(value = "/")
     public Response putImage(@RequestBody Request request) {
         return storageService.putImage(request);
     }
 
+    @CrossOrigin
     @DeleteMapping(value = "/{filename}")
     public Response deleteImage(@PathVariable String filename){
         return storageService.deleteImage(filename + ".jpg");
