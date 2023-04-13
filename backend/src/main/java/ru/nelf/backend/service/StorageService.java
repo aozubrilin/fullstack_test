@@ -2,7 +2,6 @@ package ru.nelf.backend.service;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.nelf.backend.entity.*;
@@ -21,22 +20,9 @@ public class StorageService {
     @Autowired
     private MongoDBRepository mongoDBRepository;
 
-    @PostConstruct
-    private void init() {
-        mongoDBRepository.deleteAll();
-        List<S3ObjectSummary> list = storageConfig.getS3client().listObjects(storageConfig.getBUCKET_NAME()).getObjectSummaries();
-        for (S3ObjectSummary e : list) {
-            mongoDBRepository.save(new File(
-                    e.getKey(),
-                    "животные",
-                    storageConfig.getS3client().getUrl(storageConfig.getBUCKET_NAME(), e.getKey()).toString())
-            );
-        }
-    }
-
     public ResponseCategoryFiles getAll() {
         List<File> fileList = mongoDBRepository.findAll();
-        return new ResponseCategoryFiles(200,fileList);
+        return new ResponseCategoryFiles(200, fileList);
     }
 
     public Response getImage(String fileName) {
@@ -70,16 +56,33 @@ public class StorageService {
         Optional<File> optionalFile = mongoDBRepository.findByFilename(filename);
         if (optionalFile.isPresent()) {
             mongoDBRepository.delete(optionalFile.get());
-            storageConfig.getS3client().deleteObject(storageConfig.getBUCKET_NAME(),filename);
+            storageConfig.getS3client().deleteObject(storageConfig.getBUCKET_NAME(), filename);
             optionalFile.get().setUrl(null);
             return new Response(200, optionalFile.get());
         } else
             return new Response(404, filename);
     }
 
-    public ResponseCategoryFiles findByCategory(String category) {
+    public ResponseCategoryFiles getByCategory(String category) {
         Optional<List<File>> optionalFileList = mongoDBRepository.findAllByCategory(category);
         // если существует, то вернуть. Иначе ошибка 404
         return optionalFileList.map(files -> new ResponseCategoryFiles(200, files)).orElseGet(() -> new ResponseCategoryFiles(404, null));
+    }
+
+    public void refreshMongo(){
+        mongoDBRepository.deleteAll();
+        String c = Category.ANIMAL;
+        List<S3ObjectSummary> list = storageConfig.getS3client().listObjects(storageConfig.getBUCKET_NAME()).getObjectSummaries();
+        for (S3ObjectSummary e : list) {
+            switch (e.getKey()) {
+                case "1.jpg", "2.jpg", "3.jpg", "4.jpg" -> c = Category.ANIMAL;
+                case "5.jpg", "6.jpg", "7.jpg", "8.jpg" -> c = Category.NATURE;
+                case "9.jpg", "10.jpg", "11.jpg", "12.jpg" -> c = Category.FANTASY;
+            }
+            mongoDBRepository.save(new File(
+                    e.getKey(), c,
+                    storageConfig.getS3client().getUrl(storageConfig.getBUCKET_NAME(), e.getKey()).toString())
+            );
+        }
     }
 }
