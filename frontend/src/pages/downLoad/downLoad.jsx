@@ -23,6 +23,14 @@ const DownLoad = () => {
     form.append('category', formData.category);
     form.append('link', formData.link);
     PostImages(form);
+    setFormData({
+      ...formData,
+      file: null,
+      filename: '',
+      category: 'all',
+      link: '',
+    });
+    setNameInputFile('');
   };
 
   return (
