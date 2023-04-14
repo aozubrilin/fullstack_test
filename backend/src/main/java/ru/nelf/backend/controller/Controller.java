@@ -44,6 +44,7 @@ public class Controller {
                                @RequestParam("category") String category,
                                @RequestParam(value = "url",required = false) String url,
                                @RequestParam("file") MultipartFile multipartFile) {
+        log.info("fileUpload(" + filename + "," + category + "," + url + "," + multipartFile + ")");
         return mainService.putImage(new Request(filename, category, url), multipartFile);
     }
 
