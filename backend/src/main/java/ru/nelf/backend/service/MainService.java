@@ -2,23 +2,31 @@ package ru.nelf.backend.service;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import lombok.SneakyThrows;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import ru.nelf.backend.entity.*;
 import ru.nelf.backend.repository.MongoDBRepository;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class StorageService {
+public class MainService {
 
     @Autowired
     private StorageConfig storageConfig;
     @Autowired
     private MongoDBRepository mongoDBRepository;
+
+    private final String PATH_TO_TEMP = "./src/main/resources/temp/";
 
     public ResponseCategoryFiles getAll() {
         List<File> fileList = mongoDBRepository.findAll();
@@ -31,24 +39,46 @@ public class StorageService {
         return optionalFile.map(file -> new Response(200, file)).orElseGet(() -> new Response(404, fileName));
     }
 
-    public Response putImage(Request request) {
-        try (InputStream inputStream = new URL(request.getUrl()).openStream()) {
-            Response response;
-            // если файл существует
-            if (mongoDBRepository.findByFilename(request.getFilename()).isPresent()) {
-                response = new Response(666, request.getFilename());
+    public Response putImage(Request request, MultipartFile multipartFile) {
+        Response response;
+        try {
+            // если добавление через URL(есть URL)
+            if (multipartFile.isEmpty()) {
+                try (InputStream inputStream = new URL(request.getUrl()).openStream()) {
+                    response = uploadToStorage(request, inputStream);
+                }
             } else {
-                storageConfig.getS3client().putObject(storageConfig.getBUCKET_NAME(), request.getFilename(), inputStream, new ObjectMetadata());
-                String storageUrl = storageConfig.getS3client().getUrl(storageConfig.getBUCKET_NAME(), request.getFilename()).toString();
-                File file = mongoDBRepository.save(new File(
-                        request.getFilename(),
-                        request.getCategory() == null ? "all" : request.getCategory(),
-                        storageUrl));
-                response = new Response(200, file.getId(), file.getFilename(), file.getCategory(), file.getUrl());
+                String filenameExtension = multipartFile.getOriginalFilename()
+                        .substring(multipartFile.getOriginalFilename().indexOf('.'));
+                request.setFilename(request.getFilename() + filenameExtension);
+                java.io.File file = new java.io.File(PATH_TO_TEMP + request.getFilename());
+                file.createNewFile();
+                try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                    fileOutputStream.write(multipartFile.getBytes());
+                }
+                response = uploadToStorage(request, new FileInputStream(file));
             }
+            deleteTempFiles();
             return response;
-        } catch (Exception e) {
+        } catch (IOException e) {
+            e.printStackTrace();
+            deleteTempFiles();
+            return new Response(400, request.getFilename());
+        }
+    }
+
+    private Response uploadToStorage(Request request, InputStream inputStream) {
+        // если файл существует
+        if (mongoDBRepository.findByFilename(request.getFilename()).isPresent()) {
             return new Response(409, request.getFilename());
+        } else {
+            storageConfig.getS3client().putObject(storageConfig.getBUCKET_NAME(), request.getFilename(), inputStream, new ObjectMetadata());
+            String storageUrl = storageConfig.getS3client().getUrl(storageConfig.getBUCKET_NAME(), request.getFilename()).toString();
+            File file = mongoDBRepository.save(new File(
+                    request.getFilename(),
+                    request.getCategory() == null ? "all" : request.getCategory(),
+                    storageUrl));
+            return new Response(200, file.getId(), file.getFilename(), file.getCategory(), file.getUrl());
         }
     }
 
@@ -69,7 +99,8 @@ public class StorageService {
         return optionalFileList.map(files -> new ResponseCategoryFiles(200, files)).orElseGet(() -> new ResponseCategoryFiles(404, null));
     }
 
-    public void refreshMongo(){
+    // временный метод, потом удалить
+    public void refreshMongo() {
         mongoDBRepository.deleteAll();
         String c = Category.ANIMAL;
         List<S3ObjectSummary> list = storageConfig.getS3client().listObjects(storageConfig.getBUCKET_NAME()).getObjectSummaries();
@@ -83,6 +114,15 @@ public class StorageService {
                     e.getKey(), c,
                     storageConfig.getS3client().getUrl(storageConfig.getBUCKET_NAME(), e.getKey()).toString())
             );
+        }
+    }
+
+    @SneakyThrows
+    public void deleteTempFiles() {
+        try {
+            FileUtils.cleanDirectory(new java.io.File(PATH_TO_TEMP));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
