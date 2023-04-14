@@ -54,14 +54,15 @@ const ImageItem = styled.li`
   align-items: center;
   justify-content: center;
   margin-bottom: 45px;
-  width: 325px;
-  height: 325px;
+  width: 350px;
+  height: 350px;
   border: 1px solid #f44a1e;
 `;
 
 const Image = styled.img`
   width: 100%;
   height: 100%;
+  object-fit: cover;
   filter: drop-shadow(0 0 58px rgba(244, 74, 30, 0.25));
 `;
 
