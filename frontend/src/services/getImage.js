@@ -17,7 +17,7 @@ export const getCatrgoryImages = async (category) => {
   return await res.data.fileList;
 };
 
-const URL_POST = 'https://7b73-91-201-74-74.ngrok-free.app/upload';
+const URL_POST = 'https://fullstacktest-production.up.railway.app/upload';
 
 const config = {
   headers: { 'content-type': 'multipart/form-data' },
