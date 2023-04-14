@@ -1,0 +1,34 @@
+version: "3.8"
+services:
+  mongodb:
+    container_name: mongo
+    image: mongo:latest
+    networks:
+      - backend
+    ports:
+      - "27017:27017"
+    volumes:
+      - .:/setup
+    command: --auth
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=bestuser
+      - MONGO_INITDB_ROOT_PASSWORD=bestuser
+      - MONGO_INITDB_DATABASE=admin
+  java:
+    build: .
+    networks:
+      - backend
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    environment:
+      SPRING_DATASOURCE_URL: ${MONGO_URI}
+      STORAGE_ID: ${STORAGE_ID}
+      STORAGE_KEY: ${STORAGE_KEY}
+volumes:
+  mongodb_data:
+networks:
+  backend:
+    name: nelf-network

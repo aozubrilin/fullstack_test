@@ -1,5 +1,5 @@
 HELP.md
-target/
+target/*
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -35,4 +35,4 @@ build/
 ### Other ###
 application-local.properties
 src/test/resources/application.properties
-docker-compose.yml
+!target/backend-0.0.1-SNAPSHOT.jar
