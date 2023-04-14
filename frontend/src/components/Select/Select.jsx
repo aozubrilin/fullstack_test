@@ -46,18 +46,16 @@ const ListItem = styled('li')`
   margin-bottom: 0.8em;
 `;
 
-const options = ['All', 'Animals', 'Fantastic', 'Music'];
+const options = ['all', 'animal', 'nature', 'fantasy'];
 
-const Select = () => {
+const Select = ({ setSelectedOption, selectedOption }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
 
   const toggling = () => setIsOpen(!isOpen);
 
   const onOptionClicked = (value) => () => {
     setSelectedOption(value);
     setIsOpen(false);
-    console.log(selectedOption);
   };
 
   return (

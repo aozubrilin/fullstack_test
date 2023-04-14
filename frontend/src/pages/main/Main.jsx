@@ -1,68 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Select from '../../components/Select/Select';
 import styled from 'styled-components';
-
-const data = [
-  {
-    id: 1,
-    filename: '191.jpg',
-    category: 'Животные',
-    url: 'https://www.meme-arsenal.com/memes/4c794fd85660218d1b0f768a594eeac7.jpg',
-  },
-  {
-    id: 2,
-    filename: '191.jpg',
-    category: 'Животные',
-    url: 'https://www.meme-arsenal.com/memes/4c794fd85660218d1b0f768a594eeac7.jpg',
-  },
-  {
-    id: 3,
-    filename: '191.jpg',
-    category: 'Животные',
-    url: 'https://www.meme-arsenal.com/memes/4c794fd85660218d1b0f768a594eeac7.jpg',
-  },
-  {
-    id: 4,
-    filename: '191.jpg',
-    category: 'Животные',
-    url: 'https://www.meme-arsenal.com/memes/4c794fd85660218d1b0f768a594eeac7.jpg',
-  },
-  {
-    id: 5,
-    filename: '191.jpg',
-    category: 'Животные',
-    url: 'https://www.meme-arsenal.com/memes/4c794fd85660218d1b0f768a594eeac7.jpg',
-  },
-  {
-    id: 6,
-    filename: '191.jpg',
-    category: 'Животные',
-    url: 'https://www.meme-arsenal.com/memes/4c794fd85660218d1b0f768a594eeac7.jpg',
-  },
-  {
-    id: 7,
-    filename: '191.jpg',
-    category: 'Животные',
-    url: 'https://www.meme-arsenal.com/memes/4c794fd85660218d1b0f768a594eeac7.jpg',
-  },
-  {
-    id: 8,
-    filename: '191.jpg',
-    category: 'Животные',
-    url: 'https://www.meme-arsenal.com/memes/4c794fd85660218d1b0f768a594eeac7.jpg',
-  },
-];
+import { getCatrgoryImages } from '../../services/getImage';
 
 const Main = () => {
+  const [images, setImages] = useState(null);
+  const [selectedOption, setSelectedOption] = useState('all');
+
+  const loadImages = async (selectedOption) => {
+    let images = await getCatrgoryImages(selectedOption);
+    setImages(images);
+    console.log('Main images', images);
+  };
+
+  useEffect(() => {
+    loadImages(selectedOption);
+  }, [selectedOption]);
+
   return (
     <MainWrapper>
-      <Select />
+      <Select
+        setSelectedOption={setSelectedOption}
+        selectedOption={selectedOption}
+      />
       <ImagesList>
-        {data.map((item) => (
-          <ImageItem key={item.id}>
-            <Image src={item.url} alt={item.name} />
-          </ImageItem>
-        ))}
+        {images != null &&
+          images.map((item) => (
+            <ImageItem key={item.id}>
+              <Image src={item.url} alt={item.name} />
+            </ImageItem>
+          ))}
       </ImagesList>
     </MainWrapper>
   );
